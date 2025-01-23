@@ -3,6 +3,7 @@ import "./PostDetail.css";
 
 export function PostDetail({ post }) {
   // replace with useQuery
+
   const data = [];
 
   return (
