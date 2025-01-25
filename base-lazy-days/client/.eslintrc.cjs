@@ -32,6 +32,19 @@ module.exports = {
       "warn",
       { allowConstantExport: true },
     ],
+    "simple-import-sort/imports": [
+      "error",
+      {
+        groups: [
+          // Сторонние библиотеки
+          ["^react", "^@?\\w"],
+          // Абсолютные импорты
+          ["^@/"],
+          // Относительные импорты
+          ["^\\."],
+        ],
+      },
+    ],
     // we're using TypeScript here, not propTypes!
     "react/prop-types": "off",
 

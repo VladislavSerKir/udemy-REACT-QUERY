@@ -1,4 +1,27 @@
-import { toast } from "@/components/app/toast";
+// import { toast } from "@/components/app/toast";
+import { createStandaloneToast } from "@chakra-ui/react";
+import { QueryClient } from "react-query";
+import { theme } from "../theme";
+
+const toast = createStandaloneToast({ theme });
+
+export function queryErrorHandler(error: unknown): void {
+  const id = "react-query-error";
+  const title =
+    error instanceof Error
+      ? error.toString().replace(/^Error:\s*/, "")
+      : "error connecting to the server";
+
+  // prevent duplicate toasts
+  toast.toast.closeAll();
+  toast.toast({
+    id,
+    title,
+    status: "error",
+    variant: "subtle",
+    isClosable: true,
+  });
+}
 
 // function errorHandler(errorMsg: string) {
 //   // https://chakra-ui.com/docs/components/toast#preventing-duplicate-toast
@@ -15,3 +38,11 @@ import { toast } from "@/components/app/toast";
 //     toast({ id, title, status: "error", variant: "subtle", isClosable: true });
 //   }
 // }
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      onError: queryErrorHandler,
+    },
+  },
+});

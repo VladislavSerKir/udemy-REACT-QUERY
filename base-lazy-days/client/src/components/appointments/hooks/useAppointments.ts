@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "react-query";
 
 import { AppointmentDateMap } from "../types";
 import { getAvailableAppointments } from "../utils";
@@ -10,7 +11,7 @@ import { axiosInstance } from "@/axiosInstance";
 import { queryKeys } from "@/react-query/constants";
 
 // for useQuery call
-async function getAppointments(
+export async function getAppointments(
   year: string,
   month: string
 ): Promise<AppointmentDateMap> {
@@ -54,6 +55,16 @@ export function useAppointments() {
   /** ****************** START 3: useQuery  ***************************** */
   // useQuery call for appointments for the current monthYear
 
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const nextMonthYear = getNewMonthYear(monthYear, 1);
+    queryClient.prefetchQuery(
+      [queryKeys.appointments, nextMonthYear.year, nextMonthYear.month],
+      () => getAppointments(monthYear.year, monthYear.month)
+    );
+  }, [monthYear, queryClient]);
+
   // TODO: update with useQuery!
   // Notes:
   //    1. appointments is an AppointmentDateMap (object with days of month
@@ -61,7 +72,15 @@ export function useAppointments() {
   //
   //    2. The getAppointments query function needs monthYear.year and
   //       monthYear.month
-  const appointments: AppointmentDateMap = {};
+  const fallback: AppointmentDateMap = {};
+  const { data: appointments = fallback } = useQuery(
+    [queryKeys.appointments, monthYear.year, monthYear.month], // monthYear.year, monthYear.month
+    () => getAppointments(monthYear.year, monthYear.month),
+    {
+      staleTime: 10000,
+      // keepPreviousData: true, // позволяет отображать данные предыдущей страницы пока грузим для текущей
+    }
+  );
 
   /** ****************** END 3: useQuery  ******************************* */
 

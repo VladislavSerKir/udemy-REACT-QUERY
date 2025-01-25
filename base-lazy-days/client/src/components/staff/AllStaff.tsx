@@ -15,7 +15,7 @@ export function AllStaff() {
         Our Staff
       </Heading>
       <HStack m={10} spacing={8} justify="center">
-        {staff.map((staffData) => (
+        {staff?.map((staffData) => (
           <Staff key={staffData.id} staffData={staffData} />
         ))}
       </HStack>
