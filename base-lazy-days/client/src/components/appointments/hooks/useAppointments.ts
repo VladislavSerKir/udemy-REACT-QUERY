@@ -1,7 +1,8 @@
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 
+// import { AppointmentDateMap } from "@shared/types";
 import { AppointmentDateMap } from "../types";
 import { getAvailableAppointments } from "../utils";
 import { getMonthYearDetails, getNewMonthYear } from "./monthYear";
@@ -9,6 +10,11 @@ import { getMonthYearDetails, getNewMonthYear } from "./monthYear";
 import { useLoginData } from "@/auth/AuthContext";
 import { axiosInstance } from "@/axiosInstance";
 import { queryKeys } from "@/react-query/constants";
+
+const commonOptions = {
+  staleTime: 0,
+  cacheTime: 300000,
+};
 
 // for useQuery call
 export async function getAppointments(
@@ -51,6 +57,11 @@ export function useAppointments() {
   //   appointments that the logged-in user has reserved (in white)
   const { userId } = useLoginData();
 
+  const selectFn = useCallback(
+    (data: AppointmentDateMap) => getAvailableAppointments(data, userId),
+    [userId]
+  );
+
   /** ****************** END 2: filter appointments  ******************** */
   /** ****************** START 3: useQuery  ***************************** */
   // useQuery call for appointments for the current monthYear
@@ -61,7 +72,8 @@ export function useAppointments() {
     const nextMonthYear = getNewMonthYear(monthYear, 1);
     queryClient.prefetchQuery(
       [queryKeys.appointments, nextMonthYear.year, nextMonthYear.month],
-      () => getAppointments(monthYear.year, monthYear.month)
+      () => getAppointments(monthYear.year, monthYear.month),
+      commonOptions
     );
   }, [monthYear, queryClient]);
 
@@ -76,8 +88,15 @@ export function useAppointments() {
   const { data: appointments = fallback } = useQuery(
     [queryKeys.appointments, monthYear.year, monthYear.month], // monthYear.year, monthYear.month
     () => getAppointments(monthYear.year, monthYear.month),
+    // { select: showAll ? undefined : selectFn },
     {
-      staleTime: 10000,
+      select: showAll ? undefined : selectFn,
+      // staleTime: 0, // данные будут устаревать моментально, и каждый раз при срабатывании триггеров, создаваться новый запрос
+      // cacheTime: 300000, // 5 min
+      ...commonOptions,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      refetchOnWindowFocus: true,
       // keepPreviousData: true, // позволяет отображать данные предыдущей страницы пока грузим для текущей
     }
   );

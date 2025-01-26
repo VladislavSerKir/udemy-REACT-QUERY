@@ -1,6 +1,7 @@
 // import { toast } from "@/components/app/toast";
 import { createStandaloneToast } from "@chakra-ui/react";
 import { QueryClient } from "react-query";
+
 import { theme } from "../theme";
 
 const toast = createStandaloneToast({ theme });
@@ -43,6 +44,11 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       onError: queryErrorHandler,
+      staleTime: 600000, // 10 min
+      cacheTime: 900000, // 15 min
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
     },
   },
 });
